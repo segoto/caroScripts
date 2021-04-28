@@ -15,9 +15,10 @@ heightIndex = 4
 dateIndex = 5
 valueIndex = 6
 
+start_date = datetime.date(1981,1,1)
+
 def generateFirstLine():
     line = ["CodigoEstacion", "NombreEstacion", "Altura", "Latitud", "Longitud"]
-    start_date = datetime.date(1976, 1, 1)
     end_date = datetime.date(2006, 1, 1)
     days_between = (end_date - start_date).days
     
@@ -29,7 +30,7 @@ def generateFirstLine():
     return line
 
 def readFiles():
-    precipitationFiles = listdir(relative_path_precipitacion)
+    precipitationFiles = listdir(relative_path_max_temp)
     stationCode = ''
     stationName = ''
     latitude = ''
@@ -39,12 +40,12 @@ def readFiles():
     print("Primera linea",len(lines[0]))
     for pf in precipitationFiles:
         print(f'start {pf}')
-        data = pd.read_csv(f'{relative_path_precipitacion}/{pf}')
+        data = pd.read_csv(f'{relative_path_max_temp}/{pf}')
         to_drop = list(filter(lambda x: x not in ["CodigoEstacion", "NombreEstacion", "Valor", "Fecha", "Altitud", "Longitud", "Latitud"], data.columns))        
         data = data.drop(to_drop, axis=1)
         data = data.values.tolist()
 
-        current_date = datetime.date(1976, 1, 1)
+        current_date = start_date
         end_date = datetime.date(2006, 1, 1)
         days_between = (end_date - current_date).days
         days_for_percentage = days_between
@@ -63,6 +64,8 @@ def readFiles():
             date = datetime.date(date.year, date.month, date.day)
             
             for single_date in (current_date + datetime.timedelta(n) for n in range(days_between)):
+                if date < single_date:
+                    break
                 if(date == single_date):
                     current_date = single_date + datetime.timedelta(1)
                     new_line_csv.append(f'{1}')
@@ -94,7 +97,7 @@ def readFiles():
     
     
 
-    f = open("porcentajePrecipitacion.csv", "a")
+    f = open("porcentajeTemperaturaMaxima81.csv", "a")
     f.write(newText)
     f.close()
 
