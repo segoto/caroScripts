@@ -63,11 +63,6 @@ def readFiles():
             date = datetime.date(date.year, date.month, date.day)
             
             for single_date in (current_date + datetime.timedelta(n) for n in range(days_between)):
-                if(date < single_date):
-                    index = lines[0].index(f'{date}')
-                    if new_line_csv[index] != 0:
-                        new_line_csv[index] = '1'
-                        break
                 if(date == single_date):
                     current_date = single_date + datetime.timedelta(1)
                     new_line_csv.append(f'{1}')
