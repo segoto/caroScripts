@@ -29,7 +29,7 @@ def generateFirstLine():
     return line
 
 def readFiles():
-    precipitationFiles = listdir(relative_path_min_temp)
+    precipitationFiles = listdir(relative_path_precipitacion)
     stationCode = ''
     stationName = ''
     latitude = ''
@@ -39,7 +39,7 @@ def readFiles():
     print("Primera linea",len(lines[0]))
     for pf in precipitationFiles:
         print(f'start {pf}')
-        data = pd.read_csv(f'{relative_path_min_temp}/{pf}')
+        data = pd.read_csv(f'{relative_path_precipitacion}/{pf}')
         to_drop = list(filter(lambda x: x not in ["CodigoEstacion", "NombreEstacion", "Valor", "Fecha", "Altitud", "Longitud", "Latitud"], data.columns))        
         data = data.drop(to_drop, axis=1)
         data = data.values.tolist()
@@ -99,7 +99,7 @@ def readFiles():
     
     
 
-    f = open("porcentajeTemperaturaMinima.csv", "a")
+    f = open("porcentajePrecipitacion.csv", "a")
     f.write(newText)
     f.close()
 
