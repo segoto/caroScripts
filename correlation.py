@@ -9,6 +9,7 @@ from datetime import datetime as dt
 relative_path_precipitacion = "./PrecipitacionMedia"
 relative_path_max_temp = "./TemperaturaMaxima"
 relative_path_min_temp = "./TemperaturaMinima"
+relative_path_mean_temp = "./TemperaturaMedia"
 stationCodeIndex = 0
 stationNameIndex = 1
 latitudeIndex = 2
@@ -28,6 +29,15 @@ def generateFirstLine(initial_date):
 
     return line
 
+def notValid(pf):
+    notValid = ["CamaviejaP.csv", "BosaP.csv", "CerroDeSubaP.csv", "VitelmaP.csv", "Tibitoc2P.csv"]
+
+    for s in notValid:
+        if s == pf:
+            return True
+    
+    return False
+
 def readFiles(relative_path, initial_date, file_name):
     precipitationFiles = listdir(relative_path)
     stationCode = ''
@@ -40,9 +50,14 @@ def readFiles(relative_path, initial_date, file_name):
     print("Primera linea",len(lines[0]))
     for pf in precipitationFiles:
         print(f'start {pf}')
+        if relative_path == relative_path_precipitacion:
+            if notValid(pf):
+                continue
         data = pd.read_csv(f'{relative_path}/{pf}')
+        print(data.head())
         to_drop = list(filter(lambda x: x not in ["CodigoEstacion", "NombreEstacion", "Valor", "Fecha", "Altitud", "Longitud", "Latitud"], data.columns))        
         data = data.drop(to_drop, axis=1)
+        print(data.head())
         names.append(data['NombreEstacion'].tolist()[0])
         data = data.values.tolist()
         current_date = initial_date
@@ -57,8 +72,11 @@ def readFiles(relative_path, initial_date, file_name):
         for d in data:
             if firstTime:
                 firstTime = False
-                new_line_csv.append(d[stationNameIndex])
-                new_line_csv.append(f'{d[heightIndex]}')
+                minus1 =  d[heightIndex] =="Climática Ordinaria" or d[heightIndex] == "Sinóptica Principal" or d[heightIndex] == "Climática Principal"
+                heightIndexReal =  heightIndex-1 if minus1 else heightIndex
+                stationNameIndexReal = stationNameIndex-1 if minus1  else stationNameIndex
+                new_line_csv.append(d[stationNameIndexReal])
+                new_line_csv.append(f'{d[heightIndexReal]}')
             date = dt.strptime (f'{d[dateIndex].split(" ")[0]}', "%Y-%m-%d")
             date = datetime.date(date.year, date.month, date.day)
             
@@ -67,6 +85,9 @@ def readFiles(relative_path, initial_date, file_name):
                     break
                 if(date == single_date):
                     current_date = single_date + datetime.timedelta(1)
+                    if d[valueIndex] == 'Climática Ordinaria':
+                        print("ERROOOOOOOOOOOR VALUE INDEX")
+                        raise Exception("UPS")
                     new_line_csv.append(d[valueIndex])
                     break
                 else:
@@ -82,7 +103,7 @@ def readFiles(relative_path, initial_date, file_name):
         
         lines.append(new_line_csv)
         print(f'end {pf}', len(new_line_csv))
-
+    
     new_lines = np.array(lines)
     new_lines = new_lines.transpose()
     
@@ -97,10 +118,11 @@ def readFiles(relative_path, initial_date, file_name):
 
 
 def createFiles():
-    dates = [datetime.date(1976, 1, 1), datetime.date(1981, 1, 1), datetime.date(1986, 1, 1), datetime.date(1981, 1, 1), datetime.date(1986, 1, 1)]
+    # dates = [datetime.date(1976, 1, 1), datetime.date(1981, 1, 1), datetime.date(1986, 1, 1), datetime.date(1981, 1, 1), datetime.date(1986, 1, 1)]
     sub_dir = "./correlacion"
-    file_names = [f'{sub_dir}/correlacionPrecipitacion.csv', f'{sub_dir}/correlacionTemperaturaMax81.csv', f'{sub_dir}/correlacionTemperaturaMax86.csv', f'{sub_dir}/correlacionTemperaturaMin81.csv', f'{sub_dir}/correlacionTemperaturaMin86.csv']
-    relative_paths = [relative_path_precipitacion, relative_path_max_temp, relative_path_max_temp, relative_path_min_temp, relative_path_min_temp]
+    dates = [datetime.date(1976,1,1)]
+    file_names = [f'{sub_dir}/correlacionTemperaturaMedia.csv', f'{sub_dir}/correlacionTemperaturaMax81.csv', f'{sub_dir}/correlacionTemperaturaMax86.csv', f'{sub_dir}/correlacionTemperaturaMin81.csv', f'{sub_dir}/correlacionTemperaturaMin86.csv']
+    relative_paths = [relative_path_mean_temp,relative_path_max_temp, relative_path_max_temp, relative_path_min_temp, relative_path_min_temp]
     for i in range(len(dates)):
         print("generate ",file_names[i])
         readFiles(relative_paths[i], dates[i], file_names[i])

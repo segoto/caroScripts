@@ -8,6 +8,7 @@ from datetime import datetime as dt
 relative_path_precipitacion = "./PrecipitacionMedia"
 relative_path_max_temp = "./TemperaturaMaxima"
 relative_path_min_temp = "./TemperaturaMinima"
+relative_path_mean_temp = "./TemperaturaMedia"
 stationCodeIndex = 0
 stationNameIndex = 1
 heightIndex = 2
@@ -17,9 +18,18 @@ valueIndex = 4
 start_date = datetime.date(1976,1,1)
 
 
+def notValid(pf):
+    notValid = ["CamaviejaP.csv", "BosaP.csv", "CerroDeSubaP.csv", "VitelmaP.csv", "Tibitoc2P.csv"]
+
+    for s in notValid:
+        if s == pf:
+            return True
+    
+    return False
+
 
 def readFiles():
-    precipitationFiles = listdir(relative_path_precipitacion)
+    precipitationFiles = listdir(relative_path_mean_temp)
     stationCode = ''
     stationName = ''
     latitude = ''
@@ -29,11 +39,15 @@ def readFiles():
     print("Primera linea",len(lines[0]))
     for pf in precipitationFiles:
         print(f'start {pf}')
-        data = pd.read_csv(f'{relative_path_precipitacion}/{pf}')
-        to_drop = list(filter(lambda x: x not in ["CodigoEstacion", "NombreEstacion", "Valor", "Fecha", "Altitud"], data.columns))        
+        # if notValid(pf):
+        #     continue
+        data = pd.read_csv(f'{relative_path_mean_temp}/{pf}')
+        # print(data.head)
+        to_drop = list(filter(lambda x: x.strip() not in ["CodigoEstacion", "NombreEstacion", "Valor", "Fecha", "Altitud"], data.columns))        
+        # print(to_drop)
         data = data.drop(to_drop, axis=1)
         data = data.values.tolist()
-
+        # print(data[0])
         current_date = start_date
         end_date = datetime.date(2006, 1, 1)
         days_between = (end_date - current_date).days
@@ -48,7 +62,7 @@ def readFiles():
                 new_line_csv.append(f'{d[stationCodeIndex]}')
                 new_line_csv.append(f'{d[stationNameIndex]}')
                 new_line_csv.append(f'{d[heightIndex]}')
-            date = dt.strptime (f'{d[dateIndex].split(" ")[0]}', "%Y-%m-%d")
+            date = dt.strptime (f'{d[dateIndex].strip().split(" ")[0]}', "%Y-%m-%d")
             date = datetime.date(date.year, date.month, date.day)
             
             for single_date in (current_date + datetime.timedelta(n) for n in range(days_between)):
@@ -65,7 +79,7 @@ def readFiles():
         
         average = np.average(data_to_calculate)
         standar_dev = np.std(data_to_calculate)
-        coeficiente_variacion = average/standar_dev
+        coeficiente_variacion = standar_dev/average
         new_line_csv.append(f'{average}')
         new_line_csv.append(f'{standar_dev}')
         new_line_csv.append(f'{coeficiente_variacion}')
@@ -85,7 +99,7 @@ def readFiles():
     
     
 
-    f = open("coeficienteVariacionPrecipitacion.csv", "a")
+    f = open("coeficienteVariacionTemperaturaMedia.csv", "a")
     f.write(newText)
     f.close()
 

@@ -8,7 +8,7 @@ for d in */ ; do
     for z in *.zip; do
       echo "unzip $z"
       unzip $z
-      mv excel.csv.csv ~/tesisCaro/PrecipitacionMedia/"${d//\/}".csv
+      mv excel.csv.csv ~/tesisCaro/PrecipitacionMedia/"${d//\/}".csv || mv "${d//\/}".csv ~/tesisCaro/PrecipitacionMedia/"${d//\/}".csv
     done
     cd ..
 done
